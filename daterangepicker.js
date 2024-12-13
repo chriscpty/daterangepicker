@@ -55,6 +55,7 @@
         this.autoUpdateInput = true;
         this.alwaysShowCalendars = false;
         this.ranges = {};
+		this.userChangedSelection = false;
 
         this.opens = 'right';
         if (this.element.hasClass('pull-right'))
@@ -1118,6 +1119,7 @@
 
         show: function(e) {
             if (this.isShowing) return;
+			this.userChangedSelection = false;
 
             // Create a click proxy that is private to this instance of datepicker, for unbinding
             this._outsideClickProxy = $.proxy(function(e) { this.outsideClick(e); }, this);
@@ -1156,7 +1158,7 @@
             }
 
             //if a new date range was selected, invoke the user callback function
-            if (!this.startDate.isSame(this.oldStartDate) || !this.endDate.isSame(this.oldEndDate))
+            if (this.userChangedSelection || !this.startDate.isSame(this.oldStartDate) || !this.endDate.isSame(this.oldEndDate))
                 this.callback(this.startDate.clone(), this.endDate.clone(), this.chosenLabel);
 
             //if picker is attached to a text input, update it
@@ -1212,6 +1214,7 @@
                 var dates = this.ranges[label];
                 this.startDate = dates[0];
                 this.endDate = dates[1];
+				this.userChangedSelection = true;
 
                 if (!this.timePicker) {
                     this.startDate.startOf('day');
@@ -1328,6 +1331,7 @@
                 //special case: clicking the same date for start/end,
                 //but the time of the end date is before the start date
                 this.setEndDate(this.startDate.clone());
+				this.userChangedSelection = true;
             } else { // picking end
                 if (this.timePicker) {
                     var hour = parseInt(this.container.find('.right .hourselect').val(), 10);
@@ -1346,6 +1350,7 @@
                     date = date.clone().hour(hour).minute(minute).second(second);
                 }
                 this.setEndDate(date.clone());
+				this.userChangedSelection = true;
                 if (this.autoApply) {
                   this.calculateChosenLabel();
                   this.clickApply();
@@ -1353,6 +1358,7 @@
             }
 
             if (this.singleDatePicker) {
+				this.userChangedSelection = true;
                 this.setEndDate(this.startDate);
                 if (!this.timePicker && this.autoApply)
                     this.clickApply();
@@ -1452,6 +1458,7 @@
         },
 
         timeChanged: function(e) {
+            this.userChangedSelection = true;
 
             var cal = $(e.target).closest('.drp-calendar'),
                 isLeft = cal.hasClass('left');
@@ -1521,7 +1528,7 @@
             }
 
             if (!start.isValid() || !end.isValid()) return;
-
+            this.userChangedSelection = false
             this.setStartDate(start);
             this.setEndDate(end);
             this.updateView();
